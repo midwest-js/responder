@@ -1,0 +1,11 @@
+{
+  "extends": "standard",
+
+  "rules": {
+    "comma-dangle": [ 2, "always-multiline" ],
+    "import/no-unresolved": 2,
+    "no-unused-vars": [ 2, "all" ],
+    "no-var": 2,
+    "prefer-const": 2
+  }
+}
