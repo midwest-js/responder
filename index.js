@@ -12,7 +12,7 @@
 
 // modules > 3rd party
 const _ = require('lodash')
-const debug = require('debug')('@midwest/responder')
+const debug = require('debug')('midwest:responder')
 
 const responses = {
   json (res) {
@@ -32,7 +32,7 @@ const responses = {
       {})
   },
 
-  html (res) {
+  '*/*' (res) {
     debug('ACCEPTS html, returning html')
 
     if (res.templates || res.master) {
@@ -47,46 +47,45 @@ const responses = {
 
     res.send(`<pre>${JSON.stringify(res.locals, null, '  ')}</pre>`)
   },
-
-  '*/*': function (res) {
-    debug('ACCEPTS */*...')
-
-    if (res.templates || res.master) {
-      debug('res.templates or res.master set, rendering.')
-
-      const templates = res.templates || []
-
-      return void res.render(res.master, ...templates)
-    }
-
-    debug('res.template or res.master not set, sending JSON.')
-
-    responses.json(res)
-  },
 }
 
-module.exports = function responder (req, res) {
-  if (res.template && !res.templates) {
-    res.templates = [ res.template ]
-  }
-
-  try {
-    responses[req.accepts(['html', 'json', '*/*'])](res)
-  } catch (e) {
-    const logError = require('../util/log-error')
-
-    // TODO maybe tag or name this error so it is easy to find responder errors.
-    // these should almost never occur. it is usually due to a render error
-    console.error('[!!!] ERROR IN RESPONDER, RESPONDER ERROR')
-
-    logError(e, null, { console: true }, true)
-
-    if (res.locals.error) {
-      console.error('[!!!] ERROR IN RESPONDER, ORIGINAL ERROR')
-
-      logError(res.locals.error, req, { format: false, store: false })
+module.exports = function responderFactory ({ errorHandler, logError = console.error } = {}) {
+  return function responder (req, res) {
+    if (res.template && !res.templates) {
+      res.templates = [ res.template ]
     }
 
-    res.send((res.locals.error || e).toString())
+    try {
+      responses[req.accepts(['json', '*/*'])](res)
+    } catch (e) {
+      if (errorHandler && !res.locals.error) {
+        errorHandler(e, req, res, () => {
+          responder(req, res)
+        })
+      } else {
+        console.error('[!!!] ERROR IN RESPONDER, RESPONDER ERROR')
+        logError(e)
+
+        let locals
+
+        if (res.locals.error) {
+          console.error('[!!!] ERROR IN RESPONDER, ORIGINAL ERROR')
+
+          logError(res.locals.error)
+
+          locals = {
+            responderError: _.pick(e, 'name', 'message'),
+            originalError: _.pick(res.locals.error, 'name', 'message'),
+          }
+        } else {
+          locals = { e }
+        }
+
+        responses[req.accepts(['json', '*/*'])]({
+          locals,
+          send: (...args) => res.send(...args),
+        })
+      }
+    }
   }
 }
