@@ -55,6 +55,8 @@ module.exports = function responderFactory ({ errorHandler, logError = console.e
       res.templates = [ res.template ]
     }
 
+    res.set('Vary', 'accept')
+
     try {
       responses[req.accepts(['json', '*/*'])](res)
     } catch (e) {
