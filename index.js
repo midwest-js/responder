@@ -32,7 +32,7 @@ const responses = {
       {})
   },
 
-  '*/*' (res) {
+  html (res) {
     debug('ACCEPTS html, returning html')
 
     if (res.templates || res.master) {
@@ -58,7 +58,7 @@ module.exports = function responderFactory ({ errorHandler, logError = console.e
     res.set('Vary', 'accept')
 
     try {
-      responses[req.accepts(['json', '*/*'])](res)
+      req.accepts([ 'json', '*/*' ]) === 'json' ? responses.json(res) : responses.html(res)
     } catch (e) {
       if (errorHandler && !res.locals.error) {
         errorHandler(e, req, res, () => {
