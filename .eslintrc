@@ -1,11 +1,16 @@
 {
+  "parser": "@typescript-eslint/parser",
+
   "extends": "standard",
+
+  "plugins": [ "@typescript-eslint" ],
 
   "rules": {
     "comma-dangle": [ 2, "always-multiline" ],
     "import/no-unresolved": 2,
-    "no-unused-vars": [ 2, "all" ],
+    "no-unused-vars": 0,
     "no-var": 2,
-    "prefer-const": 2
+    "prefer-const": 2,
+    "@typescript-eslint/no-unused-vars": [ 2, "all" ]
   }
 }

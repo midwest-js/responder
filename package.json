@@ -2,9 +2,11 @@
   "name": "@midwest/responder",
   "version": "0.1.2",
   "description": "",
-  "main": "index.js",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "scripts": {
-    "lint": "eslint --ignore-pattern dump .",
+    "build": "tsc",
+    "lint": "eslint --ext ts src",
     "prepublish": "npm run lint",
     "preversion": "npm run lint",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -24,11 +26,15 @@
     "lodash": "^4.17.11"
   },
   "devDependencies": {
+    "@types/node": "^12.6.1",
+    "@typescript-eslint/eslint-plugin": "^1.11.0",
+    "@typescript-eslint/parser": "^1.11.0",
     "eslint": "^6.0.1",
     "eslint-config-standard": "^12.0.0",
     "eslint-plugin-import": "^2.14.0",
     "eslint-plugin-node": "^9.1.0",
     "eslint-plugin-promise": "^4.0.1",
-    "eslint-plugin-standard": "^4.0.0"
+    "eslint-plugin-standard": "^4.0.0",
+    "typescript": "^3.5.3"
   }
 }

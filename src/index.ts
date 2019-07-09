@@ -49,7 +49,7 @@ const responses = {
   },
 }
 
-module.exports = function responderFactory ({ errorHandler, logError = console.error } = {}) {
+module.exports = function responderFactory ({ errorHandler, logError = console.error }: { errorHandler?: Function, logError?: Function }) {
   return function responder (req, res) {
     if (res.template && !res.templates) {
       res.templates = [ res.template ]
