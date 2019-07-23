@@ -8,14 +8,15 @@
  * @module @midwest/responder
  */
 
-'use strict'
-
 // modules > 3rd party
-const _ = require('lodash')
-const debug = require('debug')('midwest:responder')
+import _ from 'lodash'
+import Debug from 'debug'
+import { ErrorRequestHandler, Request, Response } from 'express'
+
+const debug = Debug('midwest:responder')
 
 const responses = {
-  json (res) {
+  json (res: IResponse): void {
     // TODO now this function is also called by '*/*'
     debug('ACCEPTS json, returning json')
 
@@ -32,7 +33,7 @@ const responses = {
       {})
   },
 
-  html (res) {
+  html (res: IResponse): void {
     debug('ACCEPTS html, returning html')
 
     if (res.templates || res.master) {
@@ -49,8 +50,16 @@ const responses = {
   },
 }
 
-module.exports = function responderFactory ({ errorHandler, logError = console.error }: { errorHandler?: Function, logError?: Function }) {
-  return function responder (req, res) {
+interface IResponse extends Response {
+  master: Function
+  preventFlatten?: boolean
+  render: (view: string | Function, options?: object | undefined, callback?: ((err: Error, html: string) => void) | undefined) => void
+  template: Function
+  templates: Function[]
+}
+
+export default function responderFactory ({ errorHandler, logError = console.error }: { errorHandler?: ErrorRequestHandler, logError?: Function }) {
+  return function responder (req: Request, res: IResponse) {
     if (res.template && !res.templates) {
       res.templates = [ res.template ]
     }
@@ -68,7 +77,7 @@ module.exports = function responderFactory ({ errorHandler, logError = console.e
         console.error('[!!!] ERROR IN RESPONDER, RESPONDER ERROR')
         logError(e)
 
-        let locals
+        let locals: any
 
         if (res.locals.error) {
           console.error('[!!!] ERROR IN RESPONDER, ORIGINAL ERROR')
@@ -83,10 +92,12 @@ module.exports = function responderFactory ({ errorHandler, logError = console.e
           locals = { e }
         }
 
-        responses[req.accepts(['json', '*/*'])]({
+        const fakeRes = {
           locals,
-          send: (...args) => res.send(...args),
-        })
+          send: (...args: any[]) => res.send(...args),
+        } as IResponse
+
+        req.accepts([ 'json', '*/*' ]) === 'json' ? responses.json(fakeRes) : responses.html(fakeRes)
       }
     }
   }
